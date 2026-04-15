@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help Center | TheStylo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            accent: '#10b981',
+            highlight: '#ef4444',
+            darkbg: '#0f172a',
+            darkcard: '#1e293b',
+            lightbg: '#f9fafb',
+          },
+          fontFamily: {
+            heading: ['Poppins', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'glow': '0 10px 30px -10px rgba(59, 130, 246, 0.3)',
+            'card': '0 20px 40px -10px rgba(0, 0, 0, 0.15)',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-lightbg dark:bg-darkbg text-gray-900 dark:text-slate-100 font-body min-h-screen transition-colors duration-300">
+
+  <!-- Header (simple, consistent with main site) -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-darkbg border-b border-gray-200 dark:border-slate-800 backdrop-blur-md shadow-md">
+    <nav class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div class="text-3xl font-heading font-extrabold text-primary">TheStylo</div>
+      <div class="flex items-center space-x-6">
+  <a href="#" 
+   onclick="goBackToHome(); return false;"
+   class="hover:text-primary transition flex items-center gap-2">
+  ← Back to Home
+</a>
+</div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto px-6 py-20">
+    <h1 id="title" class="text-4xl md:text-5xl font-heading font-bold text-center mb-10">Loading...</h1>
+    <div id="content" class="prose dark:prose-invert max-w-none text-lg leading-relaxed">
+      Loading content...
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-darkbg text-white py-16">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p>© 2026 TheStylo. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Load content from backend -->
+  <script>
+
+function goBackToHome() {
+  if (window.innerWidth <= 768) {
+    window.location.href = "TheStylo.html";
+  } else {
+    window.location.href = "TheStylo.html";
+  }
+}
+
+    async function loadContent() {
+      try {
+        const res = await fetch('http://localhost:5000/api/pages/help-center');
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        document.getElementById('title').textContent = data.title;
+        document.getElementById('content').innerHTML = data.content;
+        document.title = data.title + " | TheStylo";
+      } catch (err) {
+        document.getElementById('content').innerHTML = '<p class="text-red-500 text-center py-10">Failed to load Help Center. Please check if backend is running.</p>';
+      }
+    }
+    window.addEventListener('load', loadContent);
+  </script>
+
+
+
+</body>
+</html>

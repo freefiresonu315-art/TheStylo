@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart - TheStylo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98)), 
+                  url('https://picsum.photos/id/1015/2000/1200') center/cover no-repeat fixed;
+      background-attachment: fixed;
+    }
+    .cart-card, .wishlist-card {
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .cart-card:hover, .wishlist-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.5);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    /* Hover effect for featured courses in empty cart */
+    .featured-card {
+      transition: all 0.3s ease;
+    }
+    .featured-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .course-thumb {
+      width: 160px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 14px;
+      flex-shrink: 0;
+    }
+
+    .cart-item.removing {
+      opacity: 0;
+      transform: translateX(40px);
+      transition: all 0.4s ease;
+    }
+
+    .offer-banner {
+      background: linear-gradient(90deg, var(--banner-color, #7c3aed), #8b5cf6);
+      animation: gradient 8s ease infinite;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      padding: 14px 0;
+    }
+    .offer-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -100%;
+      width: 40%;
+      height: 300%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.25), transparent);
+      animation: shine 6s linear infinite;
+    }
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes shine {
+      0% { transform: translateX(-150%); }
+      100% { transform: translateX(400%); }
+    }
+
+    .modal {
+      animation: modalPop 0.4s ease;
+    }
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.9) translateY(30px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(15px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fade-in 0.6s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen font-sans text-slate-200">
+
+  <!-- OFFER BANNER -->
+  <div id="offerBanner" onclick="showCouponModal()" 
+       class="offer-banner hidden text-white shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 flex items-center justify-center gap-4">
+      <i class="fa-solid fa-gift text-2xl"></i>
+      <div class="text-center">
+        <span id="bannerHeadline" class="font-bold text-lg md:text-xl"></span>
+        <span id="countdown" class="block text-sm mt-1 bg-white/20 px-4 py-1 rounded-full"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <!-- Header - Updated with Home Button -->
+<header class="bg-slate-900/90 border-b border-slate-700 backdrop-blur-md sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Logo -->
+      <div onclick="goToHome()" 
+           class="text-2xl font-bold text-blue-400 tracking-tight cursor-pointer hover:text-blue-300 transition-colors select-none">
+        TheStylo
+      </div>
+
+      <!-- Right Side: Home + Cart -->
+      <div class="flex items-center gap-5 md:gap-6">
+        
+        <!-- Home Button -->
+        <button onclick="goToHome()" 
+                class="flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm md:text-base font-medium">
+          <i class="fa-solid fa-house text-xl"></i>
+          <span class="hidden sm:inline">Home</span>
+        </button>
+
+        <!-- Cart Button -->
+        <a href="cart.html" class="relative flex items-center">
+          <i class="fa-solid fa-cart-shopping text-2xl"></i>
+          <span id="cart-count" 
+                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+            0
+          </span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</header>
+
+  <!-- Back Button -->
+  <div class="max-w-7xl mx-auto px-4 pt-6 pb-2">
+    <button onclick="goBackSafely()" class="flex items-center gap-3 text-blue-400 hover:text-blue-300 font-medium text-lg">
+      <i class="fa-solid fa-arrow-left text-2xl"></i>
+      <span>Back to Courses</span>
+    </button>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 py-8 md:py-12">
+    <h1 class="text-4xl md:text-5xl font-bold text-center mb-2 text-white tracking-tight">Your Selection</h1>
+    <p class="text-center text-slate-400 text-base md:text-lg mb-10 md:mb-12">Review your premium course selections.</p>
+
+    <div class="grid lg:grid-cols-12 gap-10">
+      <div class="lg:col-span-7 space-y-8">
+        <div id="cart-items" class="space-y-5"></div>
+        <div id="wishlist-section" class="hidden">
+          <h2 class="text-2xl font-semibold text-white mb-6 flex items-center gap-3">
+            <i class="fa-solid fa-heart text-red-400"></i> Your Wishlist
+          </h2>
+          <div id="wishlist-items" class="space-y-5"></div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5">
+        <div class="cart-card rounded-3xl p-6 md:p-8 mobile-summary sticky top-24">
+                    
+
+          <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-white">Summary</h2>
+          
+          <div class="space-y-5 text-slate-300">
+            <div class="flex justify-between">
+              <span>Subtotal</span>
+              <span id="subtotal" class="font-medium">₹0</span>
+            </div>
+            <div id="discountRow" class="hidden flex justify-between text-green-400">
+              <span id="discountLabel">Discount</span>
+              <span id="discountAmount">-₹0</span>
+            </div>
+            <div class="h-px bg-slate-700 my-5"></div>
+            <div class="flex justify-between text-2xl font-bold text-white">
+              <span>Total Amount</span>
+              <span id="total">₹0</span>
+            </div>
+          </div>
+
+          <button onclick="proceedToCheckout()" class="w-full mt-10 bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl text-xl font-semibold flex items-center justify-center gap-3 transition-all active:scale-95 hidden md:block">
+            Finalize Secure Payment <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+          <div class="mt-10 pt-8 border-t border-slate-700">
+  <p class="text-center text-sm text-slate-400 mb-5">Secure & Trusted Checkout</p>
+  <div class="flex flex-wrap justify-center items-center gap-x-10 gap-y-6 text-3xl text-slate-400">
+    <i class="fa-brands fa-cc-visa hover:text-white transition cursor-help" title="Visa"></i>
+    <i class="fa-brands fa-cc-mastercard hover:text-white transition cursor-help" title="Mastercard"></i>
+    <i class="fa-brands fa-cc-apple-pay hover:text-white transition cursor-help" title="Apple Pay"></i>
+    <i class="fa-brands fa-google-pay hover:text-white transition cursor-help" title="Google Pay"></i>
+    <i class="fa-solid fa-building-columns hover:text-white transition cursor-help" title="Net Banking / UPI"></i>
+  </div>
+</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-16 mt-16 lg:mt-20">
+      <div class="mx-auto w-24 h-24 bg-slate-700/50 rounded-full flex items-center justify-center mb-8">
+        <i class="fa-solid fa-shopping-cart text-6xl text-slate-600"></i>
+      </div>
+      <h3 class="text-3xl font-semibold mb-3 text-white">Your cart is empty</h3>
+      <p class="text-slate-400 mb-10 max-w-md mx-auto">Start adding premium courses to level up your skills.</p>
+      
+      <div class="mb-10">
+        <p class="text-slate-400 text-sm mb-4">Popular right now:</p>
+        <div id="popular-suggestions" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto"></div>
+      </div>
+
+      <button onclick="browseAllCourses()" 
+              class="inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-3xl font-semibold text-lg transition-all">
+        Browse All Courses
+      </button>
+    </div>
+  </div>
+
+  <!-- Sticky Button -->
+  <div class="sticky-checkout md:hidden">
+    <button onclick="proceedToCheckout()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-3xl text-lg font-semibold flex items-center justify-center gap-3 shadow-2xl">
+      Finalize Secure Payment <i class="fa-solid fa-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- BEAUTIFUL COUPON MODAL - Mobile Optimized -->
+<div id="couponModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[9999] px-4">
+  <div class="modal bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-700/50">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-6">
+      <h3 id="modalHeadline" class="text-xl sm:text-2xl font-bold tracking-tight pr-8"></h3>
+      <button onclick="hideCouponModal()" 
+              class="text-3xl leading-none text-slate-400 hover:text-white transition-colors flex-shrink-0">×</button>
+    </div>
+
+    <!-- Short Description -->
+    <p id="modalDescription" class="text-slate-300 text-[15px] leading-relaxed mb-7"></p>
+
+    <!-- Coupon Code Box -->
+    <div class="flex flex-col sm:flex-row items-center gap-3 mb-8">
+      <div id="modalCode" 
+           class="flex-1 font-mono text-3xl sm:text-4xl tracking-[3px] sm:tracking-[4px] bg-slate-950 border border-slate-600 rounded-2xl px-5 py-4 sm:py-5 text-center font-bold text-blue-400 shadow-inner w-full">
+      </div>
+      <button onclick="copyCouponCode()" 
+              class="copy-btn bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white px-8 py-4 sm:py-5 rounded-2xl font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg w-full sm:w-auto">
+        <i class="fa-solid fa-copy"></i>
+        <span>Copy</span>
+      </button>
+    </div>
+
+    <!-- Countdown Box -->
+    <div class="bg-slate-950/70 border border-slate-700 rounded-2xl p-5 sm:p-6 mb-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 bg-amber-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-clock text-amber-400 text-lg sm:text-xl"></i>
+          </div>
+          <span class="text-slate-400 font-medium text-sm sm:text-base">Offer ends in</span>
+        </div>
+        <span id="modalCountdown" class="font-semibold text-xl sm:text-2xl text-amber-400 font-mono"></span>
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <button onclick="hideCouponModal()" 
+            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-5 rounded-2xl font-semibold text-lg tracking-wide transition-all active:scale-[0.97]">
+      Got it, Thanks!
+    </button>
+
+    <!-- Trust Line -->
+    <p class="text-center text-slate-500 text-xs mt-6">Limited time offer • Non-transferable</p>
+  </div>
+</div>
+
+  <script>
+    let cart = JSON.parse(localStorage.getItem('styloCart')) || [];
+    let wishlist = JSON.parse(localStorage.getItem('styloWishlist')) || [];
+    let appliedCoupon = null;
+    let discount = 0;
+    let currentActiveCoupon = null;
+    let featuredCourses = [];
+
+    // ==================== COUPON SYSTEM ====================
+    function loadActiveCoupon() {
+      const coupons = JSON.parse(localStorage.getItem('styloCoupons')) || [];
+      const now = new Date();
+
+      currentActiveCoupon = coupons.find(c => 
+        c.isActive && new Date(c.expiry) > now && 
+        (c.maxUsage === 0 || (c.usedCount || 0) < c.maxUsage)
+      );
+
+      const banner = document.getElementById('offerBanner');
+      if (currentActiveCoupon) {
+        banner.classList.remove('hidden');
+        banner.style.setProperty('--banner-color', currentActiveCoupon.bannerColor || '#7c3aed');
+        document.getElementById('bannerHeadline').textContent = currentActiveCoupon.headline;
+        startLiveCountdown(new Date(currentActiveCoupon.expiry));
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function startLiveCountdown(expiryDate) {
+      const countdownEl = document.getElementById('countdown');
+      const modalEl = document.getElementById('modalCountdown');
+
+      setInterval(() => {
+        const diff = expiryDate - new Date();
+        if (diff <= 0) return loadActiveCoupon();
+
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        const timeStr = `${h}h ${m}m ${s}s`;
+        countdownEl.textContent = timeStr;
+        modalEl.textContent = timeStr;
+      }, 1000);
+    }
+
+    // Updated Modal with Copy Button + Professional Timing
+    function showCouponModal() {
+  if (!currentActiveCoupon) return;
+
+  document.getElementById('modalHeadline').textContent = currentActiveCoupon.headline || "Special Offer";
+
+  const descEl = document.getElementById('modalDescription');
+  if (currentActiveCoupon.shortDescription && currentActiveCoupon.shortDescription.trim() !== '') {
+    descEl.textContent = currentActiveCoupon.shortDescription;
+    descEl.style.display = 'block';
+  } else {
+    descEl.style.display = 'none';
+  }
+
+  document.getElementById('modalCode').textContent = currentActiveCoupon.code;
+
+  const modal = document.getElementById('couponModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+    function hideCouponModal() {
+      const modal = document.getElementById('couponModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Copy Coupon Code
+    function copyCouponCode() {
+      if (!currentActiveCoupon) return;
+      
+      navigator.clipboard.writeText(currentActiveCoupon.code).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        const originalHTML = btn.innerHTML;
+        
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> Copied!`;
+        btn.classList.add('!bg-green-600');
+
+        setTimeout(() => {
+          btn.innerHTML = originalHTML;
+          btn.classList.remove('!bg-green-600');
+        }, 2000);
+      });
+    }
+
+    function updateSummary() {
+  let subtotal = cart.reduce((sum, item) => sum + Number(item.price), 0);
+  document.getElementById('subtotal').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+  document.getElementById('total').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+}
+
+    function saveCart() {
+      localStorage.setItem('styloCart', JSON.stringify(cart));
+      updateCartCount();
+      renderCart();
+      updateSummary();
+      resetDiscountIfNeeded();
+    }
+
+    function resetDiscountIfNeeded() {
+      if (appliedCoupon) {
+        const subtotal = cart.reduce((sum, item) => sum + Number(item.price), 0);
+        if (subtotal < (appliedCoupon.minCartValue || 0)) {
+          appliedCoupon = null;
+          discount = 0;
+          document.getElementById('promoMessage').textContent = '';
+        }
+      }
+    }
+
+    function saveWishlist() {
+      localStorage.setItem('styloWishlist', JSON.stringify(wishlist));
+      renderWishlist();
+    }
+
+    function updateCartCount() {
+      document.getElementById('cart-count').textContent = cart.length;
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cart-items');
+      const emptyState = document.getElementById('empty-state');
+
+      if (cart.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      container.innerHTML = cart.map((item, index) => `
+        <div class="cart-item cart-card rounded-3xl p-6 flex flex-col sm:flex-row gap-6 items-center" data-index="${index}">
+          <img src="${item.image || 'https://picsum.photos/id/1015/800/600'}" alt="${item.title}" class="course-thumb hidden sm:block" onerror="this.src='https://picsum.photos/id/1015/800/600'">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-lg md:text-xl text-white line-clamp-2">${item.title}</h3>
+            <div class="flex items-center justify-between mt-4">
+              <p class="text-blue-400 text-2xl md:text-3xl font-bold">₹${Number(item.price).toLocaleString('en-IN')}</p>
+              <div class="flex items-center gap-4">
+                <button onclick="moveToWishlist(${index}); event.stopPropagation()" class="text-blue-400 hover:text-blue-300 text-sm font-medium transition flex items-center gap-1">
+                  <i class="fa-solid fa-heart"></i> Save for Later
+                </button>
+                <button onclick="removeFromCart(${index}); event.stopPropagation()" class="text-red-400 hover:text-red-500 hover:bg-red-500/10 p-3 rounded-2xl transition-all">
+                  <span class="text-3xl leading-none md:hidden">×</span>
+                  <i class="fa-solid fa-trash text-2xl hidden md:block"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderWishlist() {
+      const section = document.getElementById('wishlist-section');
+      const container = document.getElementById('wishlist-items');
+
+      if (wishlist.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+      section.classList.remove('hidden');
+
+      container.innerHTML = wishlist.map((item, index) => `
+        <div class="wishlist-card rounded-3xl p-6 flex flex-col sm:flex-row gap-6 items-center">
+          <img src="${item.image || 'https://picsum.photos/id/1015/800/600'}" alt="${item.title}" class="course-thumb hidden sm:block" onerror="this.src='https://picsum.photos/id/1015/800/600'">
+          <div class="flex-1 min-w-0">
+            <h3 onclick="openCourseDetail('${item.id || item._id || ''}')" class="font-semibold text-lg md:text-xl text-white line-clamp-2 hover:text-blue-400 transition">
+              ${item.title}
+            </h3>
+            <div class="flex items-center justify-between mt-4">
+              <p class="text-blue-400 text-2xl md:text-3xl font-bold">₹${Number(item.price).toLocaleString('en-IN')}</p>
+              <div class="flex items-center gap-3">
+                <button onclick="moveToCartFromWishlist(${index}); event.stopPropagation()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-2xl text-sm font-medium transition flex items-center gap-2">
+                  <i class="fa-solid fa-cart-plus"></i> Move to Cart
+                </button>
+                <button onclick="removeFromWishlist(${index}); event.stopPropagation()" class="text-red-400 hover:text-red-500 hover:bg-red-500/10 p-3 rounded-2xl transition-all">
+                  <i class="fa-solid fa-trash text-xl"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeFromCart(index) {
+      const itemEl = document.querySelector(`.cart-item[data-index="${index}"]`);
+      if (itemEl) itemEl.classList.add('removing');
+      setTimeout(() => {
+        cart.splice(index, 1);
+        saveCart();
+      }, 400);
+    }
+
+    function moveToWishlist(index) {
+      const item = cart[index];
+      if (!wishlist.some(w => w.title === item.title)) wishlist.push(item);
+      const itemEl = document.querySelector(`.cart-item[data-index="${index}"]`);
+      if (itemEl) itemEl.classList.add('removing');
+      setTimeout(() => {
+        cart.splice(index, 1);
+        saveCart();
+        saveWishlist();
+        alert(`❤️ "${item.title}" moved to Wishlist`);
+      }, 300);
+    }
+
+    function moveToCartFromWishlist(index) {
+      const item = wishlist[index];
+      if (!cart.some(c => c.title === item.title)) cart.push(item);
+      wishlist.splice(index, 1);
+      saveCart();
+      saveWishlist();
+      alert(`✅ "${item.title}" moved back to Cart`);
+    }
+
+    function removeFromWishlist(index) {
+      if (confirm("Remove from wishlist?")) {
+        wishlist.splice(index, 1);
+        saveWishlist();
+      }
+    }
+
+    function openCourseDetail(courseId) {
+      if (courseId) window.location.href = `course-detail.html?id=${courseId}`;
+      else alert("Course detail page will open here.");
+    }
+
+    function proceedToCheckout() {
+  if (cart.length === 0) return;
+  window.location.href = "checkout.html";
+}
+
+    function goBackSafely() {
+      const referrer = document.referrer || "";
+      if (referrer.includes("TheStylo.html")) window.location.href = "TheStylo.html";
+      else if (referrer.includes("TheStylo.html")) window.location.href = "TheStylo.html";
+      else history.back();
+    }
+
+    function showPersistenceReminder() {
+      if (cart.length > 0) {
+        const toast = document.createElement('div');
+        toast.className = "fixed bottom-28 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-2xl text-sm shadow-xl z-50 flex items-center gap-3";
+        toast.innerHTML = `<i class="fa-solid fa-info-circle text-blue-400"></i> Your cart has been restored`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      }
+    }
+
+    // Featured Courses (kept as is)
+    async function loadFeaturedCourses() {
+      try {
+        const res = await fetch('http://localhost:5000/api/courses');
+        if (!res.ok) throw new Error();
+        const allCourses = await res.json();
+        featuredCourses = allCourses.filter(course => course.isFeatured === true || course.isFeatured === "true");
+      } catch (err) {
+        featuredCourses = JSON.parse(localStorage.getItem('styloFeaturedCourses')) || [];
+      }
+      renderPopularSuggestions();
+    }
+
+    function renderPopularSuggestions() {
+      const container = document.getElementById('popular-suggestions');
+      container.innerHTML = '';
+
+      if (featuredCourses.length === 0) {
+        container.innerHTML = `<p class="col-span-3 text-center text-slate-400 py-8">No featured courses available right now.</p>`;
+        return;
+      }
+
+      container.innerHTML = featuredCourses.map((course, index) => {
+        let imgSrc = course.image || '';
+        if (!imgSrc.startsWith('http')) imgSrc = `http://localhost:5000${imgSrc}`;
+        return `
+          <div onclick="addFeaturedToCart('${course._id || course.id}', '${course.title.replace(/'/g, "\\'")}', ${course.price}, '${imgSrc}')" 
+               class="featured-card bg-slate-800 rounded-2xl p-4 cursor-pointer hover:bg-slate-700 transition-all duration-300 opacity-0 animate-fade-in"
+               style="animation-delay: ${index * 80}ms">
+            <img src="${imgSrc}" class="w-full aspect-video object-cover rounded-xl mb-3" onerror="this.src='https://picsum.photos/id/1015/300/200'">
+            <p class="text-white text-sm font-medium line-clamp-2">${course.title}</p>
+            <p class="text-blue-400 text-sm mt-1">₹${Number(course.price).toLocaleString('en-IN')}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addFeaturedToCart(id, title, price, image) {
+      const newItem = { id: id || Date.now().toString(), title, price: Number(price), image };
+      if (!cart.some(item => item.id === newItem.id)) {
+        cart.push(newItem);
+        saveCart();
+        alert(`✅ "${title}" added to cart!`);
+      } else {
+        alert("This course is already in your cart.");
+      }
+    }
+
+    function browseAllCourses() {
+      const isMobile = window.innerWidth < 768 || 
+                       /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                       (navigator.userAgentData && navigator.userAgentData.mobile === true);
+
+      if (isMobile) {
+        window.location.href = "TheStylo.html";
+      } else {
+        window.location.href = "TheStylo.html#courses";
+      }
+    }
+// Smart Home Navigation
+function goToHome() {
+  const isMobile = window.innerWidth < 768 || 
+                   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    window.location.href = "TheStylo.html";
+  } else {
+    window.location.href = "TheStylo.html";
+  }
+}
+    // Init
+    window.onload = () => {
+      updateCartCount();
+      renderCart();
+      renderWishlist();
+      updateSummary();
+      showPersistenceReminder();
+      loadActiveCoupon();
+      loadFeaturedCourses();
+    };
+  </script>
+</body>
+</html>

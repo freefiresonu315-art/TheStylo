@@ -1,0 +1,1279 @@
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" id="html-root">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TheStylo - Premium Mastery Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',
+            accent: '#10b981',
+            highlight: '#ef4444',
+            darkbg: '#0f172a',
+            darkcard: '#1e293b',
+            lightbg: '#f9fafb',
+          },
+          fontFamily: {
+            heading: ['Poppins', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'glow': '0 10px 30px -10px rgba(59, 130, 246, 0.3)',
+            'card': '0 20px 40px -10px rgba(0, 0, 0, 0.15)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    #previewModal, #pageModal, #couponModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    #previewModal.show, #pageModal.show, #couponModal.show {
+      display: flex;
+    }
+
+    .view-btn {
+      background: transparent;
+      color: #64748b;
+    }
+    .dark .view-btn {
+      color: #94a3b8;
+    }
+    .view-btn:hover {
+      background: rgba(226, 232, 240, 0.6);
+    }
+    .dark .view-btn:hover {
+      background: rgba(30, 41, 59, 0.6);
+    }
+    .view-btn.active-view {
+      background: #3b82f6 !important;
+      box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5);
+    }
+    .view-btn.active-view svg {
+      stroke: white !important;
+    }
+
+    .course-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 480px;
+    }
+    .course-card .relative { flex-shrink: 0; }
+    .course-card .p-6 {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .course-card .line-clamp-3 { flex-grow: 1; }
+
+    /* Honeycomb Specific Layout */
+    .honeycomb-grid {
+      display: flex !important;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      padding-bottom: 60px;
+    }
+
+    .hexagon-card {
+      width: 280px;
+      height: 340px;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+      margin-bottom: -45px;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      overflow: hidden;
+    }
+    .dark .hexagon-card { background: #1e293b; }
+
+    @media (min-width: 768px) {
+      .honeycomb-grid .hexagon-card:nth-child(even) {
+        transform: translateY(55px);
+      }
+    }
+
+    .hexagon-card img {
+      height: 160px;
+      width: 100%;
+      object-fit: cover;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    }
+
+    /* Offer Banner Styles */
+    .offer-banner {
+      background: linear-gradient(90deg, var(--banner-color, #7c3aed), #8b5cf6);
+      animation: gradient 8s ease infinite;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      padding: 14px 0;
+    }
+    .offer-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -100%;
+      width: 40%;
+      height: 300%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.25), transparent);
+      animation: shine 6s linear infinite;
+    }
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes shine {
+      0% { transform: translateX(-150%); }
+      100% { transform: translateX(400%); }
+    }
+
+    .animate-bounce-slow {
+      animation: bounce-slow 4s infinite ease-in-out;
+    }
+    @keyframes bounce-slow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1f2937;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 9999px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      z-index: 10000;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .dark #toast {
+      background: #334155;
+    }
+    #toast.show {
+      display: flex;
+      animation: toastPop 0.4s ease;
+    }
+    @keyframes toastPop {
+      0% { transform: translateX(-50%) translateY(20px); opacity: 0; }
+      100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    /* Mobile Square Horizontal Scroll Testimonials */
+#testimonialsContainer {
+  scrollbar-width: none;
+}
+
+#testimonialsContainer::-webkit-scrollbar {
+  display: none;
+}
+
+#testimonialsContainer > div {
+  min-width: 260px;     /* Square width */
+  height: 260px;        /* Force square height */
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  #testimonialsContainer > div {
+    min-width: auto;
+    height: auto;
+  }
+}
+
+/* Limit description to keep card square */
+.testimonial-card p:last-child {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+  </style>
+</head>
+<body class="bg-lightbg dark:bg-darkbg text-gray-900 dark:text-slate-100 font-body min-h-screen transition-colors duration-300">
+
+  <!-- ==================== OFFER BANNER ==================== -->
+  <div id="offerBanner" onclick="showCouponModal()" 
+       class="offer-banner hidden text-white shadow-xl py-3">
+    <div class="max-w-7xl mx-auto px-4 flex items-center justify-center gap-4">
+      <i class="fa-solid fa-gift text-2xl"></i>
+      <div class="text-center">
+        <span id="bannerHeadline" class="font-bold text-base md:text-lg"></span>
+        <span id="countdown" class="block text-xs mt-1 bg-white/20 px-4 py-1 rounded-full font-medium"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Modal -->
+  <div id="pageModal" class="fixed inset-0 bg-black/85 hidden flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-darkcard rounded-2xl overflow-hidden w-11/12 max-w-4xl max-h-[90vh] relative shadow-2xl">
+      <button onclick="closePageModal()" 
+              class="absolute top-4 right-4 bg-black/60 text-white p-3 rounded-full hover:bg-black/80 z-10 transition text-xl">
+        ✕
+      </button>
+      <div class="p-8 overflow-y-auto max-h-[85vh]">
+        <h2 id="pageTitle" class="text-3xl font-heading font-bold mb-6 text-center border-b pb-4"></h2>
+        <div id="pageContent" class="prose dark:prose-invert max-w-none text-lg leading-relaxed"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="fixed inset-0 bg-white/95 dark:bg-darkbg/95 backdrop-blur-xl z-[100] hidden flex-col items-center justify-center transition-all duration-300">
+    <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-3xl">✕</button>
+    <div class="flex flex-col space-y-8 text-center text-2xl font-heading font-bold">
+      <a href="#home" onclick="toggleMobileMenu()" class="hover:text-primary">Home</a>
+      <a href="#courses" onclick="toggleMobileMenu()" class="hover:text-primary">Courses</a>
+      <a href="#dashboard" onclick="toggleMobileMenu()" class="hover:text-primary">Dashboard</a>
+      <a href="#" onclick="toggleMobileMenu(); fetchPage('about');" class="hover:text-primary">About</a>
+      <a href="help-center.html" class="hover:text-primary">Help Center</a>
+      <div class="pt-6 flex justify-center space-x-6">
+        <a href="cart.html" onclick="toggleMobileMenu()" class="relative">
+          <i class="fas fa-shopping-cart text-primary"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <!-- Header -->
+<header class="sticky top-0 z-50 bg-white dark:bg-darkbg border-b border-gray-200 dark:border-slate-800 backdrop-blur-md shadow-md">
+  <nav class="max-w-7xl mx-auto px-6 py-4">
+    <div class="flex items-center justify-between gap-6">
+      <div class="text-2xl md:text-3xl font-heading font-extrabold text-primary shrink-0">TheStylo</div>
+
+      <!-- Desktop Search Only -->
+      <div class="flex-1 max-w-2xl hidden md:block">
+        <div class="relative w-full">
+          <input id="searchInput" type="search" placeholder="Search courses..." 
+                 class="w-full px-5 py-2.5 rounded-full border border-gray-300 dark:border-slate-600 bg-white dark:bg-darkcard focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-slate-100 text-sm">
+          <svg class="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-4 md:space-x-6">
+        
+        <!-- Cart Icon - Visible on ALL screens (replaces hamburger on mobile) -->
+        <div class="relative cursor-pointer" onclick="window.location.href='cart.html';">
+          <svg class="w-6 h-6 text-gray-700 dark:text-gray-300 hover:text-accent transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <span id="cartBadge" class="absolute -top-2 -right-2 bg-highlight text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+          <svg class="w-5 h-5 hidden dark:block text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+          </svg>
+          <svg class="w-5 h-5 block dark:hidden text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Navigation Only -->
+    <div class="hidden md:flex justify-center gap-x-8 lg:gap-x-10 font-medium w-full mt-4 pt-3 border-t border-gray-100 dark:border-slate-800">
+      <a href="#" onclick="window.location.hash=''; return false;" class="text-sm hover:text-primary transition">Home</a>
+      <a href="#courses" class="text-sm hover:text-primary transition">Courses</a>
+      <a href="#dashboard" class="text-sm hover:text-primary transition">Dashboard</a>
+      <a href="#" onclick="fetchPage('about'); return false;" class="text-sm hover:text-accent transition">About</a>
+      <a href="#" onclick="fetchPage('privacy-policy'); return false;" class="text-sm hover:text-accent transition">Privacy Policy</a>
+      <a href="#" onclick="fetchPage('terms-conditions'); return false;" class="text-sm hover:text-accent transition">Terms</a>
+      <a href="help-center.html" class="text-sm hover:text-accent transition">Help Center</a>
+    </div>
+
+  </nav>
+</header>
+
+  <!-- Courses Section -->
+  <section id="courses-section" class="py-20 hidden bg-gradient-to-b from-lightbg to-white dark:from-darkbg dark:to-darkcard">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-center mb-5 md:mb-6">
+        All Courses
+      </h2>
+
+      <!-- Filters & View Controls -->
+<div class="mb-8 md:mb-10">
+  
+  <!-- Grid View Buttons - Desktop Only -->
+  <div class="hidden md:flex justify-end mb-4">
+    <div class="flex gap-2 bg-white/80 dark:bg-darkcard/80 backdrop-blur-sm p-1.5 rounded-xl shadow-inner border border-gray-200/70 dark:border-slate-700/70">
+      <button onclick="setGridView(2)" id="view2" title="2 columns" class="view-btn p-2.5 rounded-lg transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="16" rx="1.5"/><rect x="13" y="4" width="8" height="16" rx="1.5"/></svg>
+      </button>
+      <button onclick="setGridView(3)" id="view3" title="3 columns" class="view-btn p-2.5 rounded-lg transition-all active-view">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="4" width="6" height="16" rx="1.5"/><rect x="9" y="4" width="6" height="16" rx="1.5"/><rect x="16" y="4" width="6" height="16" rx="1.5"/></svg>
+      </button>
+      <button onclick="setGridView(4)" id="view4" title="4 columns" class="view-btn p-2.5 rounded-lg transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="9" rx="1.2"/><rect x="9" y="3" width="5" height="9" rx="1.2"/><rect x="15" y="3" width="5" height="9" rx="1.2"/><rect x="3" y="13" width="5" height="9" rx="1.2"/><rect x="9" y="13" width="5" height="9" rx="1.2"/><rect x="15" y="13" width="5" height="9" rx="1.2"/></svg>
+      </button>
+      <button onclick="setGridView('honey')" id="viewhoney" title="Honeycomb View" class="view-btn p-2.5 rounded-lg transition-all">
+        <i class="fas fa-braille text-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters - 2 Columns on Mobile, Horizontal on Desktop -->
+  <div class="grid grid-cols-2 md:flex md:flex-wrap md:items-center gap-3 md:gap-4">
+    
+    <select id="categoryFilter" onchange="fetchAllCourses()" 
+            class="px-4 py-3 rounded-2xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-darkcard text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+      <option value="">All Categories</option>
+      <option value="Stock Trading">Stock Trading</option>
+      <option value="Python Mastery">Python Mastery</option>
+      <option value="Digital Marketing">Digital Marketing</option>
+      <option value="Web Dev Pro">Web Dev Pro</option>
+    </select>
+
+    <select id="levelFilter" onchange="fetchAllCourses()" 
+            class="px-4 py-3 rounded-2xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-darkcard text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+      <option value="">All Levels</option>
+      <option value="Beginner">Beginner</option>
+      <option value="Intermediate">Intermediate</option>
+      <option value="Advanced">Advanced</option>
+    </select>
+
+    <select id="priceFilter" onchange="fetchAllCourses()" 
+            class="px-4 py-3 rounded-2xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-darkcard text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+      <option value="">All Prices</option>
+      <option value="low">Under ₹5,000</option>
+      <option value="high">₹5,000+</option>
+    </select>
+
+    <select id="sortFilter" onchange="fetchAllCourses()" 
+            class="px-4 py-3 rounded-2xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-darkcard text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+      <option value="latest">Sort by: Latest</option>
+      <option value="az">A to Z</option>
+      <option value="za">Z to A</option>
+      <option value="priceLow">Price: Low to High</option>
+      <option value="priceHigh">Price: High to Low</option>
+      <option value="oldest">Oldest First</option>
+    </select>
+
+  </div>
+</div>
+
+      <div id="coursesGrid" 
+     class="grid grid-cols-2 md:grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6 items-stretch auto-rows-fr">
+</div>
+
+      <div id="pagination" class="flex justify-center items-center gap-4 mt-12">
+        <button id="prevPage" class="px-6 py-3 bg-gray-300 dark:bg-gray-700 rounded-xl disabled:opacity-50" disabled>Previous</button>
+        <span id="pageInfo" class="text-lg font-medium">Page 1 of 1</span>
+        <button id="nextPage" class="px-6 py-3 bg-primary text-white rounded-xl disabled:opacity-50" disabled>Next</button>
+      </div>
+      <div id="noResults" class="hidden text-center py-12 text-xl text-gray-600 dark:text-slate-400">
+        No courses found. Try different search or filters!
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero -->
+  <!-- Hero -->
+<section id="hero-section" class="relative py-20 md:py-32 text-white overflow-hidden bg-cover bg-center"
+  style="background-image: url('https://w.wallhaven.cc/full/ly/wallhaven-lywevp.jpg');">
+  <div class="absolute inset-0 bg-black/70"></div>
+  <div class="relative max-w-6xl mx-auto px-6 text-center z-10 pt-6">
+    <h1 class="text-5xl md:text-7xl font-heading font-extrabold leading-tight mb-4">
+      Level Up with <span class="text-primary">Elite Skills</span>
+    </h1>
+    <p class="text-lg md:text-3xl mb-10 max-w-xl mx-auto font-light opacity-95">
+      Premium courses: Trading, Python & Marketing.<br>Lifetime Access.
+    </p>
+    <a href="#courses" 
+       class="inline-block px-12 py-5 bg-primary hover:bg-blue-600 text-white text-xl font-bold rounded-2xl shadow-glow transition-all active:scale-95">
+      Start Learning
+    </a>
+  </div>
+</section>
+
+<!-- Testimonials - Desktop Only -->
+<section id="testimonials-section" class="py-12 md:py-20 bg-white dark:bg-darkbg hidden md:block">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-3xl md:text-5xl font-heading font-bold text-center mb-8 md:mb-16">What Our Students Say</h2>
+    
+    <div id="testimonialsContainer" 
+         class="flex md:grid md:grid-cols-4 gap-4 md:gap-6 overflow-x-auto md:overflow-visible pb-6 snap-x snap-mandatory scrollbar-hide">
+      <!-- Cards will be added by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- Featured Premium Courses -->
+<section id="featured-section" class="py-12 md:py-20 bg-gradient-to-b from-lightbg to-white dark:from-darkbg dark:to-darkcard">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-3xl md:text-5xl font-heading font-bold text-center mb-8 md:mb-16">Featured Premium Courses</h2>
+    
+    <div id="featuredGrid" 
+         class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+      <!-- JS populated differently for mobile/desktop -->
+    </div>
+  </div>
+</section>
+
+  <!-- Cart View -->
+  <section id="cart-view" class="py-20 bg-white dark:bg-darkbg hidden">
+    <div class="max-w-5xl mx-auto px-6">
+      <h2 class="text-5xl font-heading font-bold text-center mb-12">Your Cart</h2>
+      <div id="cartItemsDashboard" class="space-y-6"></div>
+      <div class="mt-10 text-right">
+        <p class="text-3xl font-bold">Total: <span id="cartTotalDashboard">₹0</span></p>
+        <button class="mt-6 px-10 py-4 bg-accent text-white rounded-xl text-xl font-bold">
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard View -->
+    <!-- Dashboard View -->
+  <section id="dashboard-view" class="py-20 bg-white dark:bg-darkbg hidden">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="text-5xl font-heading font-bold text-center mb-16">Your Dashboard</h2>
+
+      <div>
+        <h3 class="text-3xl font-bold mb-8 text-center">Your Wishlist</h3>
+        <div id="wishlistGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-darkbg text-white py-16">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-16 text-center md:text-left">
+        <div class="col-span-2 md:col-span-1">
+          <div class="text-3xl font-heading font-extrabold text-primary mb-4">TheStylo</div>
+          <p class="opacity-80 mb-4">Premium Skill Mastery Hub</p>
+          <p class="text-sm opacity-60">© 2026 TheStylo. All rights reserved.</p>
+        </div>
+        <div>
+          <h4 class="text-lg font-heading font-semibold mb-5">Navigation</h4>
+          <ul class="space-y-3 text-sm opacity-80">
+            <li><a href="#home" class="hover:text-accent transition">Home</a></li>
+            <li><a href="#courses" class="hover:text-accent transition">Courses</a></li>
+            <li><a href="#dashboard" class="hover:text-accent transition">Dashboard</a></li>
+            <li><a href="#" onclick="fetchPage('about'); return false;" class="hover:text-accent transition">About</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-heading font-semibold mb-5">Legal</h4>
+          <ul class="space-y-3 text-sm opacity-80">
+            <li><a href="#" onclick="fetchPage('privacy-policy'); return false;" class="hover:text-accent transition">Privacy Policy</a></li>
+            <li><a href="#" onclick="fetchPage('terms-conditions'); return false;" class="hover:text-accent transition">Terms & Conditions</a></li>
+            <li><a href="#" onclick="fetchPage('refund-policy'); return false;" class="hover:text-accent transition">Refund Policy</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-heading font-semibold mb-5">Contact</h4>
+          <ul class="space-y-3 text-sm opacity-80">
+            <li><a href="mailto:support@thestylo.co" class="hover:text-accent transition">support@thestylo.co</a></li>
+            <li><a href="tel:+917020515852" class="hover:text-accent transition">+91 7020515852</a></li>
+            <li><a href="https://api.whatsapp.com/send?phone=917020515852" target="_blank" class="hover:text-accent transition">WhatsApp Support</a></li>
+            <li><a href="help-center.html" class="hover:text-accent transition">Help Center</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- WhatsApp Button -->
+  <a href="https://api.whatsapp.com/send?phone=917020515852&text=Hello%20TheStylo%20Team!%20I%20have%20a%20question%20about%20your%20courses."
+     target="_blank" rel="noopener noreferrer"
+     class="fixed bottom-6 right-6 z-50 flex items-center justify-center w-16 h-16 bg-[#25D366] text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-[0_0_40px_15px_rgba(37,213,102,0.7)] animate-bounce-slow"
+     title="Chat with us on WhatsApp">
+    <svg viewBox="0 0 448 512" class="w-10 h-10 fill-current">
+      <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
+    </svg>
+  </a>
+
+<!-- Bottom Navigation - Mobile Only -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-darkbg border-t border-gray-200 dark:border-slate-700 z-50 md:hidden">
+  <div class="max-w-7xl mx-auto grid grid-cols-3 py-2">
+    <a href="#" onclick="showHomeView(); return false;" 
+       class="flex flex-col items-center justify-center py-1 text-gray-600 dark:text-slate-400 active:text-primary">
+      <i class="fa-solid fa-house text-2xl"></i>
+      <span class="text-xs mt-1 font-medium">Home</span>
+    </a>
+    
+    <a href="#" onclick="showCoursesView(); return false;" 
+       class="flex flex-col items-center justify-center py-1 text-gray-600 dark:text-slate-400 active:text-primary">
+      <i class="fa-solid fa-book text-2xl"></i>
+      <span class="text-xs mt-1 font-medium">Courses</span>
+    </a>
+    
+    <!-- Fixed Cart Button -->
+    <a href="cart.html" 
+       class="flex flex-col items-center justify-center py-1 text-gray-600 dark:text-slate-400 active:text-primary relative">
+      <i class="fa-solid fa-shopping-cart text-2xl"></i>
+      <span class="text-xs mt-1 font-medium">Cart</span>
+      <span id="bottomCartBadge" 
+            class="absolute top-1 right-6 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+    </a>
+  </div>
+</nav>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="text-sm">
+    <span id="toastIcon"></span>
+    <span id="toastMessage"></span>
+  </div>
+
+  <!-- Coupon Modal -->
+  <div id="couponModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[9999] px-4">
+    <div class="modal bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-700/50">
+      <div class="flex justify-between items-start mb-6">
+        <h3 id="modalHeadline" class="text-xl sm:text-2xl font-bold tracking-tight pr-8"></h3>
+        <button onclick="hideCouponModal()" class="text-3xl leading-none text-slate-400 hover:text-white transition-colors">×</button>
+      </div>
+      <p id="modalDescription" class="text-slate-300 text-[15px] leading-relaxed mb-7"></p>
+      <div class="flex flex-col sm:flex-row items-center gap-3 mb-8">
+        <div id="modalCode" class="flex-1 font-mono text-3xl sm:text-4xl tracking-[3px] bg-slate-950 border border-slate-600 rounded-2xl px-5 py-4 text-center font-bold text-blue-400"></div>
+        <button onclick="copyCouponCode()" class="copy-btn bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-semibold flex items-center gap-2 transition-all w-full sm:w-auto">
+          <i class="fa-solid fa-copy"></i>
+          <span>Copy</span>
+        </button>
+      </div>
+      <div class="bg-slate-950/70 border border-slate-700 rounded-2xl p-5 mb-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-amber-500/10 rounded-2xl flex items-center justify-center">
+              <i class="fa-solid fa-clock text-amber-400"></i>
+            </div>
+            <span class="text-slate-400 font-medium">Offer ends in</span>
+          </div>
+          <span id="modalCountdown" class="font-semibold text-2xl text-amber-400 font-mono"></span>
+        </div>
+      </div>
+      <button onclick="hideCouponModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-5 rounded-2xl font-semibold text-lg transition-all">
+        Got it, Thanks!
+      </button>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="fixed inset-0 bg-black/85 hidden flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-darkcard rounded-2xl overflow-hidden w-11/12 max-w-5xl relative">
+      <button onclick="closePreview()" class="absolute top-4 right-4 bg-black/60 text-white p-3 rounded-full hover:bg-black/80 z-10 transition text-xl">✕</button>
+      <div class="p-6">
+        <h3 id="previewTitle" class="text-2xl md:text-3xl font-heading font-bold mb-6 text-center"></h3>
+        <video id="previewVideo" controls autoplay class="w-full rounded-xl" style="max-height: 65vh;">
+          <source src="" type="video/mp4">
+          Your browser does not support video playback.
+        </video>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+
+    let cart = JSON.parse(localStorage.getItem('styloCart')) || [];
+    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+    let allCourses = [];
+
+    // Page Modal
+    async function fetchPage(slug) {
+      try {
+        const res = await fetch(`${API_BASE}/pages/${slug}`);
+        if (!res.ok) throw new Error(res.status === 404 ? 'Page not found' : 'Server error');
+        const page = await res.json();
+        document.getElementById('pageTitle').textContent = page.title;
+        document.getElementById('pageContent').innerHTML = page.content;
+        document.getElementById('pageModal').classList.add('show');
+      } catch (err) {
+        console.error('Failed to load page:', slug, err);
+        alert(`Could not load "${slug}"`);
+      }
+    }
+
+    function closePageModal() {
+      document.getElementById('pageModal').classList.remove('show');
+    }
+
+ async function fetchTestimonials() {
+  try {
+    const res = await fetch('http://localhost:5000/api/testimonials');
+    const data = await res.json();
+    const container = document.getElementById('testimonialsContainer');
+    container.innerHTML = '';
+
+    data.forEach(t => {
+      const card = document.createElement('div');
+      card.className = `testimonial-card bg-white dark:bg-darkcard rounded-3xl shadow-md border border-gray-100 dark:border-slate-700 p-5 snap-center flex flex-col`;
+
+      card.innerHTML = `
+        <div class="flex items-center gap-4">
+          <img src="http://localhost:5000${t.photo}" 
+               alt="${t.name}" 
+               class="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow">
+          <div>
+            <p class="font-semibold text-base">${t.name}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">${t.role}</p>
+          </div>
+        </div>
+        
+        <div class="flex mt-4 mb-3 text-yellow-400 text-xl">
+          ${'★'.repeat(t.rating)}
+          ${'<span class="text-gray-300 dark:text-gray-600">★</span>'.repeat(5 - t.rating)}
+        </div>
+        
+        <p class="text-gray-700 dark:text-slate-300 leading-relaxed text-[15px] flex-grow line-clamp-4">
+          "${t.description}"
+        </p>
+      `;
+      container.appendChild(card);
+    });
+  } catch (err) { 
+    console.error(err); 
+  }
+}
+
+    // Featured Courses
+        // Featured Courses (Fixed: Buttons no longer open course detail)
+        // Featured Courses with Beautiful Toast Notifications
+    async function fetchFeaturedCourses() {
+  try {
+    const res = await fetch('http://localhost:5000/api/courses?featured=true');
+    const courses = await res.json();
+    const container = document.getElementById('featuredGrid');
+    container.innerHTML = '';
+
+    courses.forEach(course => {
+      const wishlistData = JSON.parse(localStorage.getItem('styloWishlist')) || [];
+      const isWishlisted = wishlistData.some(item => item.title === course.title);
+
+      const div = document.createElement('div');
+      div.className = "cursor-pointer group";
+
+      div.innerHTML = `
+        <!-- Image -->
+        <div class="relative">
+          <img src="${course.image?.startsWith('http') ? course.image : 'http://localhost:5000' + (course.image || '')}" 
+               alt="${course.title}" 
+               class="w-full aspect-video object-cover rounded-xl md:rounded-3xl">
+
+          ${course.level ? `<span class="absolute top-3 left-3 bg-accent text-white text-xs px-3 py-1 rounded-full font-bold shadow">${course.level}</span>` : ''}
+        </div>
+        
+        <!-- Title -->
+        <div class="mt-3 md:mt-4 px-1 min-h-[52px]">
+          <h3 class="font-heading font-semibold text-[15.5px] md:text-xl leading-[1.35] line-clamp-2">
+            ${course.title}
+          </h3>
+        </div>
+        
+        <!-- Price + Buttons -->
+        <div class="flex justify-between items-center mt-3 px-1">
+          <span class="text-2xl md:text-3xl font-bold text-accent">₹${Number(course.price).toLocaleString()}</span>
+          
+          <div class="flex gap-2">
+            <button onclick="event.stopPropagation(); addToCart('${course.title.replace(/'/g,"\\'")}', ${course.price}, this, '${course.image || ''}')" 
+                    class="bg-accent hover:bg-green-700 text-white w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-2xl transition">
+              <i class="fas fa-shopping-cart text-lg"></i>
+            </button>
+            
+            <button onclick="event.stopPropagation(); toggleWishlistWithData('${course.title.replace(/'/g,"\\'")}', ${course.price}, '${course.image || ''}', this)" 
+                    class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-2xl transition ${isWishlisted ? 'text-red-500' : ''}">
+              <span class="text-2xl leading-none">${isWishlisted ? '♥' : '♡'}</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Click to open course detail (works on both)
+      div.addEventListener('click', () => {
+        window.location.href = `course-detail.html?id=${course._id}`;
+      });
+
+      container.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Featured courses error:", err);
+  }
+}
+
+    // All Courses with Pagination
+    let currentPage = 1;
+    const coursesPerPage = 8;
+
+    async function fetchAllCourses() {
+      try {
+        const params = new URLSearchParams({
+          search: document.getElementById('searchInput')?.value || '',
+          category: document.getElementById('categoryFilter')?.value || '',
+          level: document.getElementById('levelFilter')?.value || '',
+          price: document.getElementById('priceFilter')?.value || '',
+          sort: document.getElementById('sortFilter')?.value || '',
+          page: currentPage,
+          limit: coursesPerPage
+        });
+
+        const res = await fetch(`${API_BASE}/courses?${params}`);
+        if (!res.ok) throw new Error('Server error');
+
+        const data = await res.json();
+        allCourses = data.courses || [];
+
+        const grid = document.getElementById('coursesGrid');
+        grid.innerHTML = '';
+
+        if (allCourses.length === 0) {
+          document.getElementById('noResults').classList.remove('hidden');
+          document.getElementById('pagination').classList.add('hidden');
+          return;
+        }
+
+        document.getElementById('noResults').classList.add('hidden');
+        document.getElementById('pagination').classList.remove('hidden');
+
+        allCourses.forEach(course => {
+  const card = document.createElement('a');
+  card.href = `course-detail.html?id=${course._id}`;
+  
+  // Mobile: Compact 2-column card | Desktop: Original tall card
+  card.className = `
+    block bg-white dark:bg-darkcard rounded-3xl shadow-card overflow-hidden 
+    hover:shadow-glow transition border border-gray-200 dark:border-gray-700
+    md:course-card
+  `;
+
+  card.innerHTML = `
+    <!-- Mobile View (2 columns) -->
+    <div class="md:hidden p-3">
+      <div class="relative aspect-video rounded-2xl overflow-hidden">
+        <img src="${course.image?.startsWith('http') ? course.image : `http://localhost:5000${course.image || ''}` || 'https://via.placeholder.com/800x450'}" 
+             alt="${course.title}" 
+             class="w-full h-full object-cover">
+        ${course.level ? `<span class="absolute top-2 left-2 bg-accent text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">${course.level}</span>` : ''}
+      </div>
+
+      <div class="mt-3">
+        <h3 class="font-heading font-semibold text-base leading-tight line-clamp-2 mb-2">${course.title}</h3>
+        
+        <div class="flex justify-between items-center">
+          <span class="text-xl font-bold text-accent">₹${Number(course.price).toLocaleString()}</span>
+          
+          <div class="flex gap-2">
+            <!-- Cart Button -->
+            <button onclick="event.stopPropagation(); addToCart('${course.title.replace(/'/g,"\\'")}', ${course.price}, this, '${course.image || ''}')" 
+                    class="w-8 h-8 flex items-center justify-center bg-accent hover:bg-green-700 text-white rounded-xl transition">
+              <i class="fas fa-shopping-cart text-sm"></i>
+            </button>
+            
+            <!-- Wishlist Button -->
+            <button onclick="event.stopPropagation(); toggleWishlistWithData('${course.title.replace(/'/g,"\\'")}', ${course.price}, '${course.image || ''}', this)" 
+                    class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-xl rounded-xl transition">
+              ♡
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop View - Keep Original Design -->
+    <div class="hidden md:block">
+      <div class="relative aspect-video">
+        <img src="${course.image?.startsWith('http') ? course.image : `http://localhost:5000${course.image || ''}` || 'https://via.placeholder.com/800x450'}" 
+             alt="${course.title}" 
+             class="w-full h-full object-cover rounded-t-3xl"/>
+        ${course.level ? `<span class="absolute top-4 left-4 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full">${course.level}</span>` : ''}
+      </div>
+      <div class="p-6">
+        <h3 class="text-2xl font-heading font-bold mb-3 line-clamp-2">${course.title}</h3>
+        <p class="mb-4 text-gray-600 dark:text-slate-300 line-clamp-3">${course.description || 'Premium mastery course – lifetime access in app'}</p>
+        <div class="flex justify-between items-center mb-6">
+          <span class="text-4xl font-bold text-accent">₹${Number(course.price).toLocaleString()}</span>
+          ${course.video ? `
+            <button onclick="event.stopPropagation(); openPreview('${course.video}', '${course.title.replace(/'/g,"\\'")}')" 
+                    class="py-3 px-5 bg-accent text-white font-bold rounded-xl hover:bg-green-700 transition">
+              Preview
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+
+  grid.appendChild(card);
+});
+
+        document.getElementById('pageInfo').textContent = `Page ${data.page || 1} of ${data.pages || 1}`;
+        document.getElementById('prevPage').disabled = (data.page || 1) === 1;
+        document.getElementById('nextPage').disabled = (data.page || 1) >= (data.pages || 1);
+
+      } catch (err) {
+        console.error('Error fetching all courses:', err);
+        document.getElementById('noResults').classList.remove('hidden');
+      }
+    }
+
+    // View Management
+    function hideAllMainSections() {
+      const sections = ['hero-section', 'testimonials-section', 'featured-section', 'courses-section', 'cart-view', 'dashboard-view'];
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+    }
+
+function showHomeView() {
+  hideAllMainSections();
+  document.getElementById('hero-section').classList.remove('hidden');
+  document.getElementById('featured-section').classList.remove('hidden');
+  
+  // Only show testimonials on desktop
+  const testimonialsSection = document.getElementById('testimonials-section');
+  if (testimonialsSection) {
+    if (window.innerWidth >= 768) {
+      testimonialsSection.classList.remove('hidden');
+      fetchTestimonials();
+    } else {
+      testimonialsSection.classList.add('hidden');
+    }
+  }
+  
+  fetchFeaturedCourses();
+}
+
+    function showCoursesView() {
+      hideAllMainSections();
+      document.getElementById('courses-section').classList.remove('hidden');
+      fetchAllCourses();
+    }
+
+    function showCartView() {
+      hideAllMainSections();
+      document.getElementById('cart-view').classList.remove('hidden');
+      renderCartContent();
+    }
+
+    function showDashboardView() {
+      hideAllMainSections();
+      document.getElementById('dashboard-view').classList.remove('hidden');
+      renderDashboardContent();
+    }
+
+    function handleHash() {
+      let hash = (window.location.hash || '').replace('#', '').trim().toLowerCase();
+      if (!hash || hash === 'home') return showHomeView();
+      if (hash === 'courses') return showCoursesView();
+      if (hash === 'cart') return showCartView();
+      if (hash === 'dashboard') return showDashboardView();
+      showHomeView();
+    }
+
+function updateBottomCartBadge() {
+  const currentCart = JSON.parse(localStorage.getItem('styloCart')) || [];
+  const bottomBadge = document.getElementById('bottomCartBadge');
+  if (bottomBadge) {
+    bottomBadge.textContent = currentCart.length;
+  }
+}
+
+    // Cart & Wishlist
+    function updateCartBadge() {
+  const currentCart = JSON.parse(localStorage.getItem('styloCart')) || [];
+  const badge = document.getElementById('cartBadge');
+  if (badge) badge.textContent = currentCart.length;
+  
+  // Also update bottom nav badge
+  updateBottomCartBadge();
+}
+
+        function addToCart(title, price, button) {
+      let currentCart = JSON.parse(localStorage.getItem('styloCart')) || [];
+      if (currentCart.some(item => item.title === title)) {
+        showToast("Already in your cart!", "⚠️");
+        return;
+      }
+
+      currentCart.push({
+        id: Date.now(),
+        title: title,
+        price: Number(price),
+        image: 'https://via.placeholder.com/800x450'
+      });
+
+      localStorage.setItem('styloCart', JSON.stringify(currentCart));
+      updateCartBadge();
+
+      if (button) {
+        button.classList.add('bg-accent', 'text-white');
+        setTimeout(() => button.classList.remove('bg-accent', 'text-white'), 800);
+      }
+
+      showToast(`Added "${title}" to cart!`, '🛒');
+    }
+
+        function toggleWishlist(title, button) {
+      const index = wishlist.indexOf(title);
+      if (index === -1) {
+        wishlist.push(title);
+        button.querySelector('span').textContent = '♥';
+        button.classList.add('text-red-500');
+        showToast(`Added "${title}" to wishlist!`, '❤️');
+      } else {
+        wishlist.splice(index, 1);
+        button.querySelector('span').textContent = '♡';
+        button.classList.remove('text-red-500');
+        showToast(`Removed from wishlist`, '🗑️');
+      }
+      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    }
+
+    function removeFromWishlist(title) {
+      wishlist = wishlist.filter(t => t !== title);
+      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+      renderDashboardContent();
+    }
+
+    function renderCartContent() {
+      const container = document.getElementById('cartItemsDashboard');
+      container.innerHTML = '';
+      let total = 0;
+
+      const currentCart = JSON.parse(localStorage.getItem('styloCart')) || [];
+      if (currentCart.length === 0) {
+        container.innerHTML = '<p class="text-center py-12 text-lg opacity-70">Your cart is empty.</p>';
+        document.getElementById('cartTotalDashboard').textContent = '₹0';
+        return;
+      }
+
+      currentCart.forEach(item => {
+        total += item.price;
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center border-b dark:border-gray-700 py-4';
+        row.innerHTML = `
+          <div>
+            <h4 class="font-semibold">${item.title}</h4>
+          </div>
+          <div class="text-right">
+            <p class="font-bold">₹${item.price.toLocaleString()}</p>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      document.getElementById('cartTotalDashboard').textContent = `₹${total.toLocaleString()}`;
+    }
+
+        function renderDashboardContent() {
+      const wishlistGrid = document.getElementById('wishlistGrid');
+      if (!wishlistGrid) return;
+      
+      wishlistGrid.innerHTML = '';
+
+      if (wishlist.length === 0) {
+        wishlistGrid.innerHTML = '<p class="col-span-full text-center opacity-70 py-12 text-lg">Your wishlist is empty.</p>';
+        return;
+      }
+
+      wishlist.forEach(title => {
+        const course = allCourses.find(c => c.title === title);
+        
+        const card = document.createElement('div');
+        card.className = 'bg-white dark:bg-darkcard rounded-3xl shadow-card overflow-hidden hover:shadow-glow transition transform hover:-translate-y-4 border border-gray-200 dark:border-gray-700 cursor-pointer';
+
+        if (course) {
+          card.innerHTML = `
+            <div class="relative aspect-video">
+              <img src="${course.image?.startsWith('http') ? course.image : `http://localhost:5000${course.image || ''}` || 'https://via.placeholder.com/400x225'}" 
+                   alt="${course.title}" 
+                   class="w-full h-full object-cover rounded-t-3xl"/>
+              ${course.level ? `<span class="absolute top-4 left-4 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full">${course.level}</span>` : ''}
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-heading font-bold mb-3 line-clamp-2">${course.title}</h3>
+              <p class="mb-4 text-gray-600 dark:text-slate-300 line-clamp-3 text-sm">${course.description || 'Premium mastery course – lifetime access'}</p>
+              <div class="flex justify-between items-center mb-5">
+                <span class="text-2xl font-bold text-accent">₹${Number(course.price).toLocaleString()}</span>
+                <span class="text-sm opacity-70">${course.category || 'Uncategorized'}</span>
+              </div>
+              <button onclick="event.stopImmediatePropagation(); removeFromWishlist('${course.title.replace(/'/g,"\\'")}');" 
+                      class="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition font-medium">
+                Remove from Wishlist
+              </button>
+            </div>
+          `;
+
+          // Make the whole card clickable to open course detail
+          card.addEventListener('click', () => {
+            if (course._id) {
+              window.location.href = `course-detail.html?id=${course._id}`;
+            } else {
+              alert("Course details not available at the moment.");
+            }
+          });
+
+        } else {
+          // Fallback if course details not found in allCourses
+          card.innerHTML = `
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-3">${title}</h3>
+              <p class="text-sm opacity-70 mb-4">Course details not available at the moment</p>
+              <button onclick="event.stopImmediatePropagation(); removeFromWishlist('${title.replace(/'/g,"\\'")}');" 
+                      class="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition">
+                Remove from Wishlist
+              </button>
+            </div>
+          `;
+          
+          card.addEventListener('click', () => {
+            alert("Course details not available at the moment.");
+          });
+        }
+        
+        wishlistGrid.appendChild(card);
+      });
+    }
+
+    // Grid View
+    let currentViewMode = 3;
+
+    function setGridView(cols) {
+      const grid = document.getElementById('coursesGrid');
+      if (!grid) return;
+
+      currentViewMode = cols;
+      grid.classList.remove('grid', 'honeycomb-grid', 'md:grid-cols-2', 'lg:grid-cols-3', 'xl:grid-cols-4');
+
+      if (cols === 'honey') {
+        grid.classList.add('honeycomb-grid');
+      } else {
+        grid.classList.add('grid');
+        if (cols === 2) grid.classList.add('md:grid-cols-2');
+        if (cols === 3) grid.classList.add('lg:grid-cols-3');
+        if (cols === 4) grid.classList.add('xl:grid-cols-4');
+      }
+
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active-view'));
+      const activeBtn = document.getElementById('view' + (cols === 'honey' ? 'honey' : cols));
+      if (activeBtn) activeBtn.classList.add('active-view');
+
+      fetchAllCourses();
+    }
+
+    // Preview Modal
+    function openPreview(videoUrl, title) {
+      document.getElementById('previewTitle').textContent = title;
+      const video = document.getElementById('previewVideo');
+      video.querySelector('source').src = videoUrl;
+      video.load();
+      document.getElementById('previewModal').classList.add('show');
+    }
+
+    function closePreview() {
+      const modal = document.getElementById('previewModal');
+      modal.classList.remove('show');
+      const video = document.getElementById('previewVideo');
+      video.pause();
+      video.currentTime = 0;
+    }
+
+    // Mobile Menu
+    function toggleMobileMenu() {
+      document.getElementById('mobileMenu').classList.toggle('hidden');
+    }
+
+    // Coupon System
+    let currentActiveCoupon = null;
+
+    function loadActiveCoupon() {
+      const coupons = JSON.parse(localStorage.getItem('styloCoupons')) || [];
+      const now = new Date();
+
+      currentActiveCoupon = coupons.find(c => 
+        c.isActive && new Date(c.expiry) > now && 
+        (c.maxUsage === 0 || (c.usedCount || 0) < c.maxUsage)
+      );
+
+      const banner = document.getElementById('offerBanner');
+      if (currentActiveCoupon && banner) {
+        banner.classList.remove('hidden');
+        banner.style.setProperty('--banner-color', currentActiveCoupon.bannerColor || '#7c3aed');
+        document.getElementById('bannerHeadline').textContent = currentActiveCoupon.headline || "Special Offer";
+        startLiveCountdown(new Date(currentActiveCoupon.expiry));
+      } else if (banner) {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function startLiveCountdown(expiryDate) {
+      const countdownEl = document.getElementById('countdown');
+      const modalEl = document.getElementById('modalCountdown');
+
+      function updateTimer() {
+        const diff = expiryDate - new Date();
+        if (diff <= 0) {
+          loadActiveCoupon();
+          return;
+        }
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        const timeStr = `${h}h ${m}m ${s}s`;
+        if (countdownEl) countdownEl.textContent = timeStr;
+        if (modalEl) modalEl.textContent = timeStr;
+      }
+
+      updateTimer();
+      setInterval(updateTimer, 1000);
+    }
+
+    function showCouponModal() {
+      if (!currentActiveCoupon) return;
+      document.getElementById('modalHeadline').textContent = currentActiveCoupon.headline || "Special Offer";
+      document.getElementById('modalCode').textContent = currentActiveCoupon.code;
+      const descEl = document.getElementById('modalDescription');
+      descEl.textContent = currentActiveCoupon.shortDescription || '';
+      document.getElementById('couponModal').classList.add('show');
+    }
+
+    function hideCouponModal() {
+      document.getElementById('couponModal').classList.remove('show');
+    }
+
+    function copyCouponCode() {
+      if (!currentActiveCoupon) return;
+      navigator.clipboard.writeText(currentActiveCoupon.code).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        const original = btn.innerHTML;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> Copied!`;
+        btn.classList.add('!bg-green-600');
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.classList.remove('!bg-green-600');
+        }, 2000);
+      });
+    }
+
+    // Setup
+    document.addEventListener('DOMContentLoaded', () => {
+      const html = document.documentElement;
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        html.classList.add('dark');
+      }
+
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        html.classList.toggle('dark');
+        localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+      });
+
+      // Search
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        let timer;
+        searchInput.addEventListener('input', () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            window.location.hash = 'courses';
+            setTimeout(fetchAllCourses, 100);
+          }, 400);
+        });
+      }
+
+      const searchInputMobile = document.getElementById('searchInputMobile');
+      if (searchInputMobile) {
+        let timerMobile;
+        searchInputMobile.addEventListener('input', () => {
+          clearTimeout(timerMobile);
+          timerMobile = setTimeout(() => {
+            window.location.hash = 'courses';
+            setTimeout(fetchAllCourses, 100);
+          }, 400);
+        });
+      }
+
+      updateCartBadge();
+      window.addEventListener('storage', updateCartBadge);
+
+      // Pagination
+      document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          fetchAllCourses();
+          window.scrollTo({ top: document.getElementById('courses-section').offsetTop - 100, behavior: 'smooth' });
+        }
+      });
+
+      document.getElementById('nextPage').addEventListener('click', () => {
+        currentPage++;
+        fetchAllCourses();
+        window.scrollTo({ top: document.getElementById('courses-section').offsetTop - 100, behavior: 'smooth' });
+      });
+
+      // Close modals on escape
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          closePageModal();
+          closePreview();
+          hideCouponModal();
+        }
+      });
+
+      // Preview modal click outside
+      document.getElementById('previewModal').addEventListener('click', e => {
+        if (e.target === document.getElementById('previewModal')) closePreview();
+      });
+
+      loadActiveCoupon();
+      handleHash();
+      window.addEventListener('hashchange', handleHash);
+    });
+
+    // Show beautiful toast notification
+    function showToast(message, icon = '✓') {
+      const toast = document.getElementById('toast');
+      const toastIcon = document.getElementById('toastIcon');
+      const toastMessage = document.getElementById('toastMessage');
+
+      toastIcon.innerHTML = icon;
+      toastMessage.textContent = message;
+
+      toast.classList.add('show');
+
+      // Auto hide after 2.5 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+  </script>
+</body>
+</html>
+```
